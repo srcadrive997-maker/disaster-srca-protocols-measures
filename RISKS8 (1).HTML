@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRCA - بروتوكولات المخاطر الميدانية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --srca-red: #C8102E;
+            --srca-dark: #9A0C22;
+            --bg-main: #eef1f5;
+            --card-bg: #ffffff;
+            --text-black: #1a1a1a;
+            --text-muted: #555;
+            --primary-blue: #1565C0;
+            --secondary-blue: #0D47A1;
+            --orange: #E65100;
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+            --radius: 10px;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-main); color: var(--text-black); margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 8px; height: 100vh; overflow: hidden; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--srca-red); }
+
+        .header-bar { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--srca-red), var(--srca-dark)); color: #fff; padding: 8px 18px; border-radius: var(--radius); box-shadow: var(--shadow-md); flex-shrink: 0; }
+        .header-bar .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.1rem; }
+        .header-bar .brand .logo-icon { width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+
+        .main-section { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; flex: 1; min-height: 0; width: 100%; }
+        .panel { background: var(--card-bg); border-radius: var(--radius); padding: 10px 14px; box-shadow: var(--shadow-md); overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; position: relative; min-width: 0; min-height: 0; }
+        .panel-title { font-size: 1rem; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
+        .panel-title .icon { margin-left: 6px; }
+        .panel-proto { border-top: 3px solid var(--primary-blue); }
+        .panel-guide { border-top: 3px solid var(--orange); }
+
+        .proto-select-wrapper select { width: 100%; border: 2px solid var(--primary-blue); font-weight: 900; font-family: 'Tajawal', sans-serif; background: linear-gradient(to left, #f0f6ff, #fff); font-size: 0.95rem; color: var(--primary-blue); padding: 10px 12px; border-radius: 8px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .proto-select-wrapper select:focus { border-color: var(--srca-red); color: var(--srca-red); box-shadow: 0 0 0 3px rgba(200,16,46,0.1); }
+
+        .protocol-content { display: none; animation: fadeIn 0.3s; width: 100%; min-width: 0; flex: 1; overflow-y: auto; }
+        .protocol-content.active { display: flex; flex-direction: column; }
+        .check-item { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; margin-bottom: 6px; cursor: pointer; padding: 9px 12px; border-radius: 8px; transition: all 0.2s; width: 100%; min-width: 0; background: #f8f9fc; border: 1.5px solid #e8eaf0; }
+        .check-item:hover { background: #eef2ff; border-color: #c5cae9; }
+        .check-item.checked-active { background: #e8f5e9; border-color: #a5d6a7; }
+        .check-item input[type="checkbox"], .check-item input[type="radio"] { margin: 0; margin-top: 3px; transform: scale(1.3); accent-color: var(--srca-red); cursor: pointer; flex-shrink: 0; width: 16px; height: 16px; }
+        .check-text { font-size: 0.88rem; font-weight: 700; color: var(--text-black); line-height: 1.55; flex: 1; min-width: 0; text-align: right; word-wrap: break-word; overflow-wrap: break-word; }
+        .check-separator { border: 0; border-top: 2px solid #e3e7ee; margin: 6px 0; }
+        .triage-red { border-right: 4px solid #C8102E; }
+        .triage-yellow { border-right: 4px solid #FFC107; }
+        .triage-green { border-right: 4px solid #4CAF50; }
+        .triage-black { border-right: 4px solid #212121; }
+        .active-proto-badge { display: none; background: var(--primary-blue); color: #fff; padding: 2px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 800; animation: fadeIn 0.3s; }
+        .active-proto-badge.show { display: inline-block; }
+
+        .guideline-content { display: none; animation: fadeIn 0.3s; padding-bottom: 20px; width: 100%; min-width: 0; }
+        .guideline-content.active { display: block; }
+        .accordion { background: #f5f7fa; color: var(--primary-blue); cursor: pointer; padding: 10px 14px; width: 100%; text-align: right; border: 1.5px solid #d5dbe5; border-radius: 8px; outline: none; transition: all 0.25s; font-family: 'Tajawal', sans-serif; font-size: 0.9rem; font-weight: 900; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .accordion:hover { background: #e8ecf3; }
+        .accordion.active-acc { background: var(--primary-blue); color: white; border-color: var(--primary-blue); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 2px 8px rgba(21,101,192,0.3); }
+        .accordion:after { content: '\25BC'; font-size: 0.7rem; transition: transform 0.3s; }
+        .accordion.active-acc:after { transform: rotate(180deg); }
+        .accordion-panel { padding: 12px 15px; background: #fff; display: none; border: 1.5px solid var(--primary-blue); border-top: none; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); width: 100%; min-width: 0; }
+        .verbatim-list { width: 100%; }
+        .verbatim-list h4 { color: var(--secondary-blue); font-size: 0.92rem; font-weight: 900; margin: 10px 0 6px 0; padding-bottom: 4px; border-bottom: 2px solid #e8ecf3; }
+        .verbatim-list p { margin: 0 0 6px 0; font-size: 0.85rem; font-weight: 700; color: var(--text-black); line-height: 1.65; word-wrap: break-word; }
+        .verbatim-list ul { margin: 0 0 8px 0; padding-right: 18px; }
+        .verbatim-list li { margin-bottom: 5px; font-size: 0.85rem; font-weight: 700; color: var(--text-black); line-height: 1.6; word-wrap: break-word; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 900px) { body { height: auto; overflow-y: auto; } .main-section { grid-template-columns: 1fr; height: auto; } .panel { min-height: 350px; } }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="brand">
+            <div class="logo-icon">🏥</div>
+            <span>SRCA | بروتوكولات المخاطر الميدانية</span>
+        </div>
+    </div>
+
+    <div class="main-section">
+        <div class="panel panel-proto">
+            <div class="panel-title" style="color: var(--primary-blue);">
+                <span><span class="icon">⚡</span> البروتوكولات الخاصة</span>
+                <span class="active-proto-badge" id="protoBadge"></span>
+            </div>
+            <div class="proto-select-wrapper" style="margin-bottom:12px;">
+                <select id="protocolSelect" onchange="showProtocol()">
+                    <option value="">-- اضغط لتفعيل البروتوكول --</option>
+                    <option value="mci">1- حوادث الإصابات الجماعية (MCI)</option>
+                    <option value="safety">2- سلامة الموقع</option>
+                    <option value="sizeup">3- مسح وتأمين الموقع</option>
+                    <option value="poisoning">4- رعاية مرضى التسمم</option>
+                    <option value="chemExposure">5- التعرض للأسلحة الكيميائية</option>
+                    <option value="chemBurn">6- الحروق الكيميائية الموضعية</option>
+                </select>
+            </div>
+
+            <div id="mci" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">تنفيذ الفرز الأولي من قبل أول طاقم إسعافي وإعادة التقييم.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">إخطار فريق الترحيل للإعلان عن الحوادث المتعددة.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">تقييم الموقع للأخطار وتحديد مستوى الاستجابة.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">تعيين الوظائف: قيادة EMS، فرز، علاج، انطلاق، تحميل.</span></label>
+                <hr class="check-separator">
+                <label class="check-item triage-red" onclick="toggleCheck(this)"><input type="radio" name="triage"><span class="check-text">🔴 أولوية 1 (أحمر): جروح خطيرة — رعاية ونقل فوريين</span></label>
+                <label class="check-item triage-yellow" onclick="toggleCheck(this)"><input type="radio" name="triage"><span class="check-text">🟡 أولوية 2 (أصفر): لا تشكل خطراً مباشراً على الحياة</span></label>
+                <label class="check-item triage-green" onclick="toggleCheck(this)"><input type="radio" name="triage"><span class="check-text">🟢 أولوية 3 (أخضر): إصابات طفيفة لا تتطلب تثبيتاً فورياً</span></label>
+                <label class="check-item triage-black" onclick="toggleCheck(this)"><input type="radio" name="triage"><span class="check-text">⚫ بدون أولوية (أسود): متوفون أو إصابات مميتة غير قابلة للإنعاش</span></label>
+            </div>
+
+            <div id="safety" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">الموقع غير آمن لوجود أسلحة أو مواد خطرة أو حريق أو عنف.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">في حال العنف: انتظر الجهات الأمنية لتأمين الموقع قبل الدخول.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">تأكد من تأمين صندوق السيارة (ادفعه لأسفل وأنت تمشي بجواره).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">ارتداء ملابس خارجية عاكسة عالية الوضوح في جميع الأوقات.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">إيقاف السيارة بطريقة تسمح بالمغادرة السريعة وبعيداً عن التسربات.</span></label>
+            </div>
+
+            <div id="sizeup" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">تقييم المخاطر: بيئية / مواد خطرة / عنف / حوادث اصطدام.</span></label>
+                <hr class="check-separator">
+                <label class="check-item triage-green" onclick="toggleCheck(this)"><input type="radio" name="safe"><span class="check-text">✅ آمن — تواصل مع المريض وابدأ في تقييمه.</span></label>
+                <label class="check-item triage-red" onclick="toggleCheck(this)"><input type="radio" name="safe"><span class="check-text">❌ غير آمن — اطلب جهات متخصصة بأسرع وقت.</span></label>
+                <hr class="check-separator">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">حماية المريض بعد إعلان الأمان — سلامة المريض هي الأولوية التالية.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">حماية الجمهور — قلل الأخطار أو أبعد الجمهور من الموقع.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">مسح الموقع لمعلومات آلية الإصابة وطبيعة المرض.</span></label>
+            </div>
+
+            <div id="poisoning" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🫁 في حالة قصور التنفس (أقل من 10/دقيقة): اعطِ نالكسون 2-4 ملغ أنفي أو 0.4 ملغ عضلي.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">إذا لم يكن هناك استجابة بعد 3-5 دقائق، اعطِ جرعة ثانية من النالكسون.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">الهدف: الوصول إلى تهوية وأكسجة كافية (ليس استعادة الوعي).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🩸 فحص واشتباه انخفاض السكر — عالج حسب البروتوكول 6.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">📉 تخطيط قلب 12 قطب + خط وريدي + مراقبة قلبية (CARDIAC MONITOR).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">💧 إذا كان الضغط منخفضاً: 500 مل محلول ملحي (حتى 2 لتر حسب الحاجة).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">💊 تم إعطاء الأدوية المتقدمة وفق التوجيه الطبي المعتمد (إن لزم).</span></label>
+            </div>
+
+            <div id="chemExposure" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">💨 الاقتراب عكس اتجاه الريح وصعوداً إلى مكان الحادث.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🛑 التوقف عند مسافة آمنة بعيداً عن مكان الحادث.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🦺 استخدام معدات الوقاية الشخصية (PPE) + جهاز التنفس المستقل (SCBA).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">💧 تجنب ملامسة السوائل بخلاف المياه غير الملوثة.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🚔 التعامل مع الموقع كمسرح جريمة — الجاني قد لا يزال موجوداً.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">طلب دعم الجهات المناسبة (متخصصو المواد الخطرة، الشرطة، إلخ.).</span></label>
+            </div>
+
+            <div id="chemBurn" class="protocol-content">
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🧪 تحديد العامل المسبب واتباع إجراء HAZMAT إذا لزم الأمر.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🧽 امسح البودرة الجافة بفرشاة. اكشط المواد اللزجة بأداة صلبة.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">💧 اغسل بماء نظيف لمدة 10-15 دقيقة (ما لم يكن هناك مانع كيميائي).</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">⚠️ يمنع الغسل بالمياه ابتدائياً: الجير الكلسي الجاف / الغسول القلوي / الفينول.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">📞 اتصل بالتوجيه الطبي للحصول على مزيد من النصائح.</span></label>
+                <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-text">🫁 أكسجين إذا SpO₂ ≤ 94%. أزيز → بروتوكول الضائقة التنفسية 11-M.</span></label>
+            </div>
+        </div>
+
+        <div class="panel panel-guide">
+            <div class="panel-title" style="color: var(--orange);">
+                <span><span class="icon">📖</span> الإرشادات التفصيلية</span>
+            </div>
+
+            <div id="g-mci" class="guideline-content">
+                <button class="accordion">التعليمات الأولية والإجراءات</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <p>🚑 يجب أن يتم تنفيذ عملية الفرز الأولية من قبل أول طاقم إسعافي يصل إلى مكان الحادث ويجب إعادة التقييم باستمرار حيث قد تتغير حالة فرز المريض.</p>
+                    <p>🩸 قم بالحفاظ على الاحتياطات العامة الخاصة بالدم وسوائل الجسم، اتبع بروتوكول عزل سطح ومواد الجسم -G2.</p>
+                    <p>⚠️ يجب أن يقوم فريق الاستجابة الأولية بتقييم الموقع بحثًا عن الأخطار المحتملة والسلامة وعدد الضحايا لتحديد المستوى المناسب للاستجابة. اتبع بروتوكول مسح وتأمين الموقع -G3</p>
+                    <p>📞 قم بإخطار فريق الترحيل للإعلان عن الحوادث المتعددة والحاجة إلى استجابة كبيرة كما هو محدد بواسطة مستوى الحدث.</p>
+                </div></div>
+                <button class="accordion">تحديد وتعيين الوظائف</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>المهام عند توفر الموظفين</h4>
+                    <p>👥 قم بتحديد وتعيين الوظائف التالية عندما يصبح الموظفون المؤهلون متاحين:</p>
+                    <ul>
+                        <li>قيادة الخدمات الإسعافية الطارئة مسؤولة عن القيادة العامة لجميع موارد وإدارة الحدث.</li>
+                        <li>ضابط الفرز: مسؤول عن الإشراف على جميع أنشطة مجموعة الفرز.</li>
+                        <li>ضابط العلاج: مهمته الإشراف على جميع أنشطة مجموعة العلاج.</li>
+                        <li>ضابط الانطلاق مسؤول عن الإشراف على انطلاق جميع سيارات الإسعاف القادمة وغيرها من موارد الخدمات الطبية الطارئة المتنقلة.</li>
+                        <li>ضابط التحميل: مسؤول عن الإشراف على تحميل جميع المرضى المعالجين في سيارات الإسعاف والحافلات والمروحيات وتسجيل معلومات المريض وأرقام العلامات وتنسيق وجهات المستشفى مع التوجيه الطبي.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">أولويات الفرز والعلاج</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>تحديد الأولويات</h4>
+                    <p>📋 يتم تحديد أولويات الفرز والعلاج بشكل عام على النحو التالي:</p>
+                    <ul>
+                        <li>🔴 الأولوية الأولى (أحمر): المرضى المصابون بجروح خطيرة الذين يحتاجون إلى رعاية ونقل فوريين (الضائقة التنفسية، إصابة الصدر والبطن، إصابات الرأس الشديدة، الصدمة / النزيف الحاد، الحروق الشديدة).</li>
+                        <li>🟡 الأولوية الثانية (أصفر): إصابات لا تشكل خطرا مباشرًا على الحياة (إصابة بطن بدون صدمة، كسور كبيرة بدون صدمة، إصابة رأس / عمود فقري عنقي، حروق طفيفة).</li>
+                        <li>🟢 الأولوية الثالثة (أخضر): إصابات طفيفة لا تتطلب تثبيتا فوريا (إصابات الأنسجة الرخوة، كسور الأطراف والخلع).</li>
+                        <li>⚫ بدون أولوية (أسود): مرضى متوفون أو إصابات واضحة مميتة وغير قابلة للإنعاش.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">النقاط الرئيسية</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>تفعيل البروتوكول</h4>
+                    <p>🚨 يتم تفعيل البروتوكول إذا كان الحادث يشمل أكثر من 6 ضحايا.</p>
+                    <h4>دور الموظفين</h4>
+                    <p>🤝 سيشترك جميع الموظفين في إدارة الحوادث المتعددة MCI. من الضروري أن تنفذ جميع فرق EMT نظام أوامر الحادث (ICS) ويجب أن يكون كل EMT على دراية بدوره ومسؤولياته.</p>
+                </div></div>
+            </div>
+
+            <div id="g-safety" class="guideline-content">
+                <button class="accordion">التقييم الأولي للبيئة غير الآمنة</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>مؤشرات الخطر</h4>
+                    <p>⚠️ ضع بعين الاعتبار أن الموقع غير آمن إذا كانت المعلومات الواردة من الترحيل الطبي أو المسح الأولي يرجح ما يلي:</p>
+                    <ul>
+                        <li>1 موقع الحادث يوحي بوجود بيئة غير آمنة.</li>
+                        <li>🔫 2. وجود أسلحة.</li>
+                        <li>🏭 3 حادث صناعي أو حادث سيارة مع مواد خطرة.</li>
+                        <li>🧪 4. قصة تلامس مع المواد الكيميائية.</li>
+                        <li>🔥 5 وجود حريق فعال في الموقع.</li>
+                        <li>💢 6 مريض عنيف أو عنف من الجمهور.</li>
+                        <li>7 تقدير مقدمي الخدمة في مرحلة ما قبل المستشفى.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">التعامل مع العنف والأسلحة</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>عند توقع عنف أو أسلحة</h4>
+                    <ul>
+                        <li>🚓 1. انتظر الجهات الأمنية لتأمين الموقع قبل الدخول.</li>
+                        <li>🛑 2 تجنب دخول الموقع لوحدك.</li>
+                    </ul>
+                    <h4>عند الدخول لموقع به تهديد</h4>
+                    <ul><li>🏃 غادر فورًا إلى مكان آمن وانتظر الجهات الأمنية.</li></ul>
+                    <h4>الأسلحة الفتاكة</h4>
+                    <ul>
+                        <li>1. لا تحرك الأسلحة النارية إلا إذا كانت تشكل تهديدًا مباشرًا.</li>
+                        <li>2. قم بتأمين أي سلاح بعيدًا عن متناول المريض أو الجمهور.</li>
+                        <li>يجب تسليم البنادق إلى المسؤول الأمني أو وضعها في مكان مغلق.</li>
+                        <li>إذا لزم نقل السلاح: أبعد الإصبع عن الزناد واحفظ السبطانة باتجاه آمن.</li>
+                        <li>لا تفرغ البندقية.</li>
+                        <li>🔪 ضع السكاكين في مكان مغلق عند توفرها.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">حوادث السيارات والحوادث الصناعية</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>اعتبارات عامة</h4>
+                    <ul>
+                        <li>ℹ️ احصل على أكبر قدر من المعلومات قبل الوصول.</li>
+                        <li>☣️ ابحث عن المواد الخطرة والتسربات. ادخل عكس اتجاه الريح.</li>
+                        <li>⚡ ابحث عن الأسلاك الكهربائية المكشوفة.</li>
+                        <li>اطلب المساعدة عند الحاجة.</li>
+                    </ul>
+                    <h4>إيقاف السيارة</h4>
+                    <ul>
+                        <li>ضع السيارة في مكان مرتفع عكس اتجاه الريح.</li>
+                        <li>أوقفها بطريقة تسمح بالمغادرة السريعة.</li>
+                        <li>اسمح بوصول مركبات الدفاع المدني والإطفاء.</li>
+                        <li>قم بدور مراقب لحركة المرور حتى وصول المسؤولين.</li>
+                    </ul>
+                    <h4>الأمان والسلامة</h4>
+                    <ul>
+                        <li>ضع مشاعل / أجهزة تحذير.</li>
+                        <li>تجنب دخول السيارة التالفة حتى تستقر.</li>
+                        <li>ارتداء معدات الحماية الشخصية لجميع المستجيبين.</li>
+                        <li>🦺 ارتداء ملابس عاكسة عالية الوضوح في جميع الأوقات.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">المركبات المتوقفة وتكتيكات الاقتراب</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>موقع سيارة الإسعاف</h4>
+                    <ul>
+                        <li>خلف المركبة المتوقفة بطريقة تسمح بمغادرة سريعة.</li>
+                        <li>شغّل المصابيح على الضوء العالي.</li>
+                        <li>أبلغ العمليات بالراديو بنوع السيارة وحالتها ورقم اللوحة وعدد الركاب.</li>
+                    </ul>
+                    <h4>تكتيكات اقتراب شخص واحد</h4>
+                    <ul>
+                        <li>🔦 في الليل استخدم مصباحاً يدوياً بعيدًا عن جسمك.</li>
+                        <li>تقدم ببطء نحو مقعد السائق. ابق خلف العمود "B" كغطاء.</li>
+                        <li>تأكد من تأمين صندوق السيارة.</li>
+                        <li>تحقق من وجود أسلحة وأشخاص في المقعد الخلفي.</li>
+                        <li>لا تقف أبدا أمام المركبة مباشرة.</li>
+                    </ul>
+                    <h4>التعامل مع المرضى</h4>
+                    <ul>
+                        <li>حاول تنبيه الضحية بالنقر على السقف / النافذة.</li>
+                        <li>قدم نفسك كمسعف. اسأل ما المشكلة؟</li>
+                        <li>لا تفسح المجال للمريض للوصول إلى أي شيء.</li>
+                        <li>اطلب من الركاب البقاء في السيارة.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">مكان الإقامة لمرضى يشتبه أن يكونوا عنيفين</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>الاقتراب من الموقع</h4>
+                    <ul>
+                        <li>تأكد أن الموقع آمن عبر الاتصالات مع العمليات.</li>
+                        <li>لا تدخل مواقع لم يتم تحديد أنها آمنة.</li>
+                        <li>🚓 انتظر الشرطة في حالات الاعتداء أو الطعن أو إطلاق النار.</li>
+                        <li>أوقف مصابيح وصفارات الإنذار قبل الوصول.</li>
+                        <li>أوقف السيارة على مسافة 20 مترًا بطريقة تسمح بالمغادرة السريعة.</li>
+                    </ul>
+                    <h4>الوصول إلى الموقع</h4>
+                    <ul>
+                        <li>اقترب من زاوية الموقع. استمع للأصوات.</li>
+                        <li>ألقِ نظرة سريعة على النافذة — تجنب الوقوف أمامها أو أمام الباب.</li>
+                        <li>📻 احمل الجهاز اللاسلكي بصوت منخفض.</li>
+                        <li>إذا قررت المغادرة امش إلى الخلف.</li>
+                    </ul>
+                    <h4>وضعية الوقوف عند الباب</h4>
+                    <ul>
+                        <li>قف على جانبي مقبض الباب ولا تقف أمامه.</li>
+                        <li>اطرق الباب وعرّف عن نفسك.</li>
+                        <li>افتح الباب على مصراعيه وتفقد ما خلفه.</li>
+                    </ul>
+                    <h4>الدخول إلى مكان إقامة المريض</h4>
+                    <ul>
+                        <li>تفحص الغرفة بدقة بحثا عن أسلحة.</li>
+                        <li>🔪 احذر من المطابخ (سكاكين، زجاج، منظفات كاوية).</li>
+                        <li>راقب المخارج البديلة.</li>
+                        <li>لا تدع أحداً يقف بينك وبين الباب.</li>
+                    </ul>
+                    <h4>الأوضاع المتدهورة</h4>
+                    <ul>
+                        <li>غادر (مع أو بدون المريض) ماشيًا إلى الخلف.</li>
+                        <li>قابل الشرطة عند تقاطع أو معلم قريب وليس في الموقع.</li>
+                        <li>لا تنحاز إلى أي طرف أو تتهم أي شخص.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">ملاحظات والنقاط الرئيسية</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <ul>
+                        <li>📻 يجب أن يحمل كل مستجيب جهاز لاسلكي محمول.</li>
+                        <li>🔥 لا تستخدم المشاعل بالقرب من المواد القابلة للاشتعال.</li>
+                        <li>🚚 اقترب من الشاحنات من الزاوية اليمنى الأمامية.</li>
+                    </ul>
+                    <h4>تعريفات أعمدة السيارات</h4>
+                    <ul>
+                        <li>العمود (A): يدعم السقف في الزاوية الأمامية بجوار الزجاج الأمامي.</li>
+                        <li>العمود (B): يدعم السقف بين الأبواب الأمامية والخلفية.</li>
+                    </ul>
+                </div></div>
+            </div>
+
+            <div id="g-sizeup" class="guideline-content">
+                <button class="accordion">سلامة الموقع وإدارته</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>المخاطر الشائعة</h4>
+                    <p>⚠️ قم بتقييم المخاطر عند الاقتراب وداخل الموقع:</p>
+                    <ul>
+                        <li>1. بيئية.</li>
+                        <li>☣️ 2 مواد خطرة (كيميائية - بيولوجية).</li>
+                        <li>💢 3 عنف (المريض، الجمهور، مسارح الجرائم).</li>
+                        <li>🚗 4. إنقاذ (حوادث اصطدام، إخراج محتجزين).</li>
+                    </ul>
+                    <h4>هل الموقع آمن؟</h4>
+                    <ul>
+                        <li>✅ نعم → تواصل مع المريض وابدأ التقييم.</li>
+                        <li>❌ لا → هل يمكن جعله آمناً بسرعة؟ نعم: ابدأ بعد الأمان. لا: لا تدخل حتى يتم تقليل الأخطار.</li>
+                        <li>🚓 اطلب جهات متخصصة (شرطة، دفاع مدني).</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">إدارة الموقع والتأثير البيئي</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>تأثير البيئة على الرعاية</h4>
+                    <ul>
+                        <li>طبية: تحديد طبيعة المرض والمخاطر الطبية.</li>
+                        <li>رضية: تحديد آلية الإصابة والمخاطر.</li>
+                        <li>بيئية: طقس، سموم، غازات، انهيارات ثانوية.</li>
+                    </ul>
+                    <h4>معالجة الأخطار</h4>
+                    <ul>
+                        <li>🛡️ حماية المريض: إذا لم تتمكن من تخفيف الأخطار فانقله لبيئة أكثر أماناً.</li>
+                        <li>حماية الجمهور: قلل الأخطار أو أبعد الجمهور.</li>
+                        <li>اطلب جهات متخصصة حسب الحاجة.</li>
+                        <li>امسح الموقع لمعلومات آلية الإصابة وطبيعة المرض.</li>
+                    </ul>
+                    <h4>العنف</h4>
+                    <ul>
+                        <li>💢 لا تدخل إذا كان هناك تهديد بالعنف.</li>
+                        <li>أوقف مركبتك بمسافة آمنة وانتظر الجهات المختصة.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">الموارد الإضافية والاحتياطات</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>الموارد المتخصصة</h4>
+                    <ul>
+                        <li>بدلات وقاية كيميائية وبيولوجية. معدات إنقاذ متخصصة. أجهزة صعود وهبوط.</li>
+                        <li>يحق فقط للمستجيبين المدربين استخدام وسائل الوقاية المتخصصة.</li>
+                    </ul>
+                    <h4>الاحتياطات الأساسية للعدوى</h4>
+                    <ul>
+                        <li>🦠 الدم وسوائل الجسم والإفرازات قد تحتوي على عوامل معدية.</li>
+                        <li>Universal precautions لحماية العاملين. Standard precautions لحماية المريض.</li>
+                    </ul>
+                    <h4>PPE - معدات الوقاية الشخصية</h4>
+                    <ul>
+                        <li>🦺 ارتدِ PPE المناسبة للمخاطر (أحذية صلب، خوذات، ملابس مقاومة للحرارة، SCBA، قفازات عمل).</li>
+                    </ul>
+                    <h4>حالات تعدد المرضى</h4>
+                    <ul>
+                        <li>🚑 حدد عدد المرضى والحاجة لموارد إضافية. حماية المريض والجمهور. نظام ICS/IMS.</li>
+                    </ul>
+                </div></div>
+            </div>
+
+            <div id="g-poisoning" class="guideline-content">
+                <button class="accordion">الرعاية الأساسية وإعطاء النالكسون</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>القصور التنفسي</h4>
+                    <ul>
+                        <li>🫁 قصور التنفس (أقل من 10/دقيقة): نالكسون 2-4 ملغ أنفي أو 0.4 ملغ عضلي.</li>
+                        <li>لا استجابة بعد 3-5 دقائق → جرعة ثانية.</li>
+                        <li>الهدف: تهوية وأكسجة كافية (ليس استعادة الوعي).</li>
+                    </ul>
+                    <h4>حالات السكر والنالكسون</h4>
+                    <ul>
+                        <li>🩸 اشتباه انخفاض السكر → عالج حسب البروتوكول 6.</li>
+                        <li>💊 النالكسون البالغين: 0.4-4 ملغ وريدي/عظمي/عضلي/أنفي (أقصى 10 ملغ).</li>
+                    </ul>
+                    <h4>الإجراءات الداعمة</h4>
+                    <ul>
+                        <li>📉 ECG 12-lead + خط وريدي + مراقبة قلبية.</li>
+                        <li>💧 ضغط منخفض: 500 مل NS (أقصى 2 لتر).</li>
+                        <li>👶 الأطفال: نالكسون 0.1 ملغ/كغ وريدي/عظمي/عضلي/أنفي.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">الأدوية المتقدمة وفق التوجيه الطبي</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>قائمة الأدوية</h4>
+                    <p>🩺 من الممكن أن يطلب التوجيه الطبي إعطاء:</p>
+                    <ul>
+                        <li>💊 كلوريد الكالسيوم 10%: 20 ملغ/كلغ وريدي/عظمي خلال 5 دقائق (أقصى 1 غرام). حاصرات الكالسيوم.</li>
+                        <li>💊 بيكربونات الصوديوم: 0.5-1 mEq/كلغ وريدي/عظمي. مضادات الاكتئاب ثلاثية الحلقات / الأسبرين.</li>
+                        <li>💊 الأتروبين: البالغين 2-5 ملغ وريدي/عظمي (فوسفور عضوية). الأطفال: 0.02 ملغ/كلغ.</li>
+                        <li>💊 البوتيرول: 2.5-3 ملغ إرذاذ (تضيق قصبي).</li>
+                        <li>💊 فوروسيميد: البالغين 40 ملغ وريدي/عظمي (وذمة رئوية). الأطفال: 0.5 ملغ/كلغ.</li>
+                        <li>💊 میدازولام: البالغين 2-6 ملغ. الأطفال: 0.05 ملغ/كلغ.</li>
+                        <li>💊 نتريت الأميل: استنشاق 15 من كل 30 ثانية + أكسجين 100% متقطع.</li>
+                        <li>💊 هيدروكسوكوبالامين: البالغين 5 غرام خلال 15 دقيقة. الأطفال: 70 ملغ/كلغ (أقصى 5 غرام).</li>
+                        <li>💊 جلوكاجون: البالغين 1-5 ملغ (حاصرات بيتا/كالسيوم). الأطفال: 0.5-1 ملغ بعد التوجيه الطبي.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">طقم التسمم بالسيانيد</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>الإجراءات</h4>
+                    <p>🧪 إذا كان متوفرًا:</p>
+                    <ul>
+                        <li>حبتان نتريت الأميل بالاستنشاق.</li>
+                        <li>3% نترات الصوديوم: البالغين 10 مل وريدي/عظمي خلال 2-4 دقائق. الأطفال: 0.2 مل/كلغ (أقصى 10 مل) خلال 5 دقائق.</li>
+                        <li>ثيوكبريتات الصوديوم 25%: البالغين 50 مل وريدي/عظمي. الأطفال: 5 مل لكل 1 مل نترات صوديوم.</li>
+                        <li>⚠️ أوقف النترات إذا انخفض الضغط — عالج الصدمة.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">النقاط الرئيسية للتسمم</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <ul>
+                        <li>☣️ اشتباه غاز الأعصاب → عالج حسب البروتوكول.</li>
+                        <li>📌 المستجيب الأول يمكنه إعطاء الأدوية إذا كان مدربا ومسموحا له.</li>
+                        <li>النالكسون فقط لمرضى التنفس غير الكافي. الهدف: إعادة التنفس لطبيعته. قد يحتاجون لجهاز التنفس الصناعي.</li>
+                    </ul>
+                </div></div>
+            </div>
+
+            <div id="g-chemExposure" class="guideline-content">
+                <button class="accordion">الإجراءات الأولية فور الوصول</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>خطوات الاقتراب</h4>
+                    <ul>
+                        <li>💨 1. اقترب عكس اتجاه الريح وصعوداً.</li>
+                        <li>🛑 2. توقف عند مسافة آمنة.</li>
+                        <li>3. نبّه المستجيبين القادمين.</li>
+                        <li>🦺 4. PPE + SCBA كحد أدنى.</li>
+                        <li>5. كن على دراية بالأجهزة الثانوية.</li>
+                        <li>🚔 6. تعامل مع الموقع كمسرح جريمة.</li>
+                        <li>💧 7. تجنب ملامسة السوائل.</li>
+                        <li>8. اطلب دعم الجهات المناسبة.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">أساسيات الخدمة الطبية الطارئة</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>العمل مع المتخصصين</h4>
+                    <p>🚑 اتبع توجيهات قائد الحدث. اعمل مع أخصائيي HazMat لتحديد PPE والمناطق الآمنة.</p>
+                    <h4>الأولويات</h4>
+                    <ul>
+                        <li>💣 انتبه للأجهزة الثانوية والجناة.</li>
+                        <li>💧 تجنب ملامسة السوائل.</li>
+                        <li>حدد الأولويات وافرز الضحايا (بروتوكول MCI 4-A).</li>
+                    </ul>
+                    <h4>النقل</h4>
+                    <ul>
+                        <li>حدد هوية المريض وتتبعه.</li>
+                        <li>الاتصال بالمستشفيات. تنظيم EMS والإمدادات. تجنب نقل مرضى ملوثين.</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">مؤشرات حادث أسلحة كيميائية</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>علامات الخطر</h4>
+                    <ul>
+                        <li>💥 انفجار مع ضرر بسيط أو بدون أضرار هيكلية.</li>
+                        <li>💨 جهاز ينفث ضباباً أو بخاراً.</li>
+                        <li>🤢 أعراض متشابهة على عدد من الضحايا بدون سبب واضح.</li>
+                        <li>👃 روائح أو سوائل أو أجهزة رش أو اسطوانات غير عادية.</li>
+                        <li>🐕‍🦺 حيوانات نافقة.</li>
+                        <li>🦺 وجود PPE ملقاة في المكان.</li>
+                    </ul>
+                </div></div>
+            </div>
+
+            <div id="g-chemBurn" class="guideline-content">
+                <button class="accordion">تحديد العامل والتطهير</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>الإجراءات المبدئية</h4>
+                    <p>🧪 حدد العامل المسبب واتبع إجراء HAZMAT إذا لزم.</p>
+                    <h4>التطهير الموضعي</h4>
+                    <ul>
+                        <li>🧽 امسح البودرة الجافة بفرشاة قبل الغسل.</li>
+                        <li>🥄 اكشط المواد اللزجة بأداة صلبة (خافض لسان).</li>
+                        <li>💧 اغسل بماء نظيف أو محلول ملحي لمدة 10-15 دقيقة (ما لم يكن هناك مانع كيميائي).</li>
+                    </ul>
+                </div></div>
+                <button class="accordion">العلاج الإسعافي والنقاط الرئيسية</button>
+                <div class="accordion-panel"><div class="verbatim-list">
+                    <h4>العلاج الداعم</h4>
+                    <ul>
+                        <li>📞 اتصل بالتوجيه الطبي.</li>
+                        <li>🫁 أكسجين إذا SpO₂ ≤ 94%.</li>
+                        <li>أزيز → بروتوكول الضائقة التنفسية 11-M. قيّم الحرق وابدأ إنعاش السوائل (بروتوكول 10-E).</li>
+                        <li>معالجة الألم → بروتوكول 1-M.</li>
+                    </ul>
+                    <h4>تحذيرات</h4>
+                    <ul>
+                        <li>⚠️ يمنع الغسل بالمياه ابتدائياً: الجير الكلسي الجاف / الغسول القلوي / الفينول (قد ينتج تفاعلات كيميائية).</li>
+                    </ul>
+                </div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCheck(el) {
+            setTimeout(() => {
+                const input = el.querySelector('input');
+                if (input && input.checked) el.classList.add('checked-active');
+                else el.classList.remove('checked-active');
+            }, 10);
+        }
+        function showProtocol() {
+            document.querySelectorAll('.protocol-content, .guideline-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.accordion').forEach(el => el.classList.remove('active-acc'));
+            document.querySelectorAll('.accordion-panel').forEach(el => el.style.display = 'none');
+            const selected = document.getElementById('protocolSelect').value;
+            const badge = document.getElementById('protoBadge');
+            if (selected) {
+                document.getElementById(selected).classList.add('active');
+                const guide = document.getElementById('g-' + selected);
+                if (guide) {
+                    guide.classList.add('active');
+                    const firstAcc = guide.querySelector('.accordion');
+                    const firstPanel = guide.querySelector('.accordion-panel');
+                    if (firstAcc && firstPanel) { firstAcc.classList.add('active-acc'); firstPanel.style.display = 'block'; }
+                }
+                badge.textContent = 'مُفعّل';
+                badge.classList.add('show');
+            } else { badge.classList.remove('show'); }
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            var acc = document.getElementsByClassName("accordion");
+            for (var i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function() {
+                    this.classList.toggle("active-acc");
+                    var panel = this.nextElementSibling;
+                    panel.style.display = panel.style.display === "block" ? "none" : "block";
+                });
+            }
+        });
+    </script>
+</body>
+</html>
